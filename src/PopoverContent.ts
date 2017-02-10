@@ -9,15 +9,16 @@ import {Popover} from "./Popover";
      [style.left]="left + 'px'"
      [class.in]="isIn"
      [class.fade]="animation"
-     style="display: block"
+     [style.display]="displayType"
+     [style.position]="positionType"
      role="popover">
     <div [hidden]="!closeOnMouseOutside" class="virtual-area"></div>
-    <div class="arrow"></div> 
+    <div class="arrow"></div>
     <h3 class="popover-title" [hidden]="!title">{{ title }}</h3>
     <div class="popover-content">
         <ng-content></ng-content>
         {{ content }}
-    </div> 
+    </div>
 </div>
 `,
     styles: [`
@@ -27,23 +28,23 @@ import {Popover} from "./Popover";
     position: absolute;
 }
 .popover.top .virtual-area {
-    bottom: -11px; 
+    bottom: -11px;
 }
 .popover.bottom .virtual-area {
-    top: -11px; 
+    top: -11px;
 }
 .popover.left .virtual-area {
-    right: -11px; 
+    right: -11px;
 }
 .popover.right .virtual-area {
-    left: -11px; 
+    left: -11px;
 }
 `]
 })
 export class PopoverContent implements AfterViewInit, OnDestroy {
 
     // -------------------------------------------------------------------------
-    // Inputs / Outputs 
+    // Inputs / Outputs
     // -------------------------------------------------------------------------
 
     // @Input()
@@ -60,6 +61,9 @@ export class PopoverContent implements AfterViewInit, OnDestroy {
 
     @Input()
     animation: boolean = true;
+
+    @Input()
+    appendToBody: boolean = false;
 
     @Input()
     closeOnClickOutside: boolean = false;
@@ -80,10 +84,11 @@ export class PopoverContent implements AfterViewInit, OnDestroy {
     left: number = -10000;
     isIn: boolean = false;
     displayType: string = "none";
+    positionType: string = "inherit";
     effectivePlacement: string;
 
     // -------------------------------------------------------------------------
-    // Anonymous 
+    // Anonymous
     // -------------------------------------------------------------------------
 
     /**
@@ -114,9 +119,9 @@ export class PopoverContent implements AfterViewInit, OnDestroy {
     listenMouseFunc: any;
     ngAfterViewInit(): void {
         if (this.closeOnClickOutside)
-            this.listenClickFunc = this.renderer.listenGlobal("document", "mousedown", (event: any) => this.onDocumentMouseDown(event));               
+            this.listenClickFunc = this.renderer.listenGlobal("document", "mousedown", (event: any) => this.onDocumentMouseDown(event));
         if (this.closeOnMouseOutside)
-            this.listenMouseFunc = this.renderer.listenGlobal("document", "mouseover", (event: any) => this.onDocumentMouseDown(event));  
+            this.listenMouseFunc = this.renderer.listenGlobal("document", "mouseover", (event: any) => this.onDocumentMouseDown(event));
 
         this.show();
         this.cdr.detectChanges();
@@ -137,8 +142,9 @@ export class PopoverContent implements AfterViewInit, OnDestroy {
         if (!this.popover || !this.popover.getElement())
             return;
 
-        const p = this.positionElements(this.popover.getElement(), this.popoverDiv.nativeElement, this.placement);
+        const p = this.positionElements(this.popover.getElement(), this.popoverDiv.nativeElement, this.placement, this.appendToBody);
         this.displayType = "block";
+        if (this.appendToBody) this.positionType = "fixed";
         this.top = p.top;
         this.left = p.left;
         this.isIn = true;
